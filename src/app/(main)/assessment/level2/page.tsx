@@ -22,6 +22,7 @@ async function getLevel2Items() {
       domainName: checklistItems.domainName,
       requirementId: checklistItems.requirementId,
       requirement: checklistItems.requirement,
+      objective: checklistItems.objective,
       weight: checklistItems.weight,
       sortOrder: checklistItems.sortOrder,
       evalStatus: evaluations.status,
@@ -105,6 +106,9 @@ export default async function Level2Page() {
                           <WeightBadge weight={item.weight} />
                         </div>
                         <p className="mt-0.5 text-sm text-gray-600">{item.requirement}</p>
+                        {item.objective && (
+                          <p className="mt-1 text-xs text-gray-400 italic">{item.objective}</p>
+                        )}
                       </div>
                       <EvaluationForm
                         itemId={item.itemId}
