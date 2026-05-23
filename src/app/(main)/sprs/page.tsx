@@ -104,7 +104,7 @@ export default async function SprsPage() {
           </CardHeader>
           <CardContent className="text-center">
             <div className={`text-5xl font-bold ${scoreColor}`}>{sprsScore}</div>
-            <div className="text-xs text-gray-400 mt-1">(-203 ~ 110)</div>
+            <div className="text-xs text-gray-400 mt-1">(-108 ~ 110)</div>
             <Progress value={sprsPercent} className="mt-3 h-3" />
             <div className="text-xs text-gray-500 mt-1">{sprsPercent}% (정규화)</div>
           </CardContent>

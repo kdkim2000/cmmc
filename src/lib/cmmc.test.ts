@@ -49,11 +49,11 @@ describe('SPRS 점수 계산 (NIST SP 800-171)', () => {
     expect(calcSprs(items)).toBe(105)
   })
 
-  it('전체 NOT MET(최저 점수) → -203점', () => {
-    // NIST SP 800-171 가중치 합계 = 313 → SPRS 최저 = 110 - 313 = -203
-    const maxDeduction = 313
+  it('전체 NOT MET(최저 점수) → -108점', () => {
+    // NIST SP 800-171 실제 가중치 합계 = 218 → SPRS 최저 = 110 - 218 = -108
+    const maxDeduction = 218
     const minScore = 110 - maxDeduction
-    expect(minScore).toBe(-203)
+    expect(minScore).toBe(-108)
   })
 })
 

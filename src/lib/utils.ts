@@ -23,9 +23,9 @@ export function formatDateTime(date: Date | string): string {
   })
 }
 
-/** SPRS score (-203~110) → percentage (0~100) for progress bar display */
+/** SPRS score (-108~110) → percentage (0~100) for progress bar display */
 export function sprsToPercent(score: number): number {
-  const min = -203
+  const min = -108
   const max = 110
   return Math.round(((score - min) / (max - min)) * 100)
 }

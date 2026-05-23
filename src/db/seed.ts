@@ -12,6 +12,7 @@ config({ path: '.env.local' })
 
 import { neon } from '@neondatabase/serverless'
 import { drizzle } from 'drizzle-orm/neon-http'
+import { eq } from 'drizzle-orm'
 import { checklistItems, users } from './schema'
 import bcrypt from 'bcryptjs'
 
@@ -196,10 +197,10 @@ const LEVEL2_ITEMS = [
   // 1. 접근 통제 (AC) — 22개
   { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.1',  requirement: '시스템 접근을 인가된 사용자, 프로세스, 장치로 제한한다.', objective: '인가된 사용자·프로세스·장치 리스트와 실제 시스템 접근 로그가 일치하는지 확인한다.', weight: 1, sortOrder: 1 },
   { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.2',  requirement: '인가된 사용자가 실행할 수 있는 트랜잭션 및 기능 유형을 제한한다.', objective: '사용자 권한 설정이 직무별 최소 권한 원칙에 따라 트랜잭션 및 기능을 제한하고 있는지 확인한다.', weight: 1, sortOrder: 2 },
-  { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.3',  requirement: 'CUI 흐름을 시스템 내·외부로 통제한다.', objective: 'CUI 데이터가 인가되지 않은 경로(이메일, USB 등)로 흐르는지 모니터링하고 차단하는지 확인한다.', weight: 5, sortOrder: 3 },
-  { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.4',  requirement: '직무 분리(Separation of Duties)를 통해 악의적 공모 위험을 줄인다.', objective: '시스템 관리·보안 감사 등 민감한 직무가 적절히 분리되어 있는지 확인한다.', weight: 3, sortOrder: 4 },
+  { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.3',  requirement: 'CUI 흐름을 시스템 내·외부로 통제한다.', objective: 'CUI 데이터가 인가되지 않은 경로(이메일, USB 등)로 흐르는지 모니터링하고 차단하는지 확인한다.', weight: 3, sortOrder: 3 },
+  { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.4',  requirement: '직무 분리(Separation of Duties)를 통해 악의적 공모 위험을 줄인다.', objective: '시스템 관리·보안 감사 등 민감한 직무가 적절히 분리되어 있는지 확인한다.', weight: 1, sortOrder: 4 },
   { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.5',  requirement: '최소 권한(Least Privilege) 원칙을 적용한다.', objective: '사용자 및 프로세스가 작업 수행에 필요한 최소한의 권한만 가지고 있는지 확인한다.', weight: 3, sortOrder: 5 },
-  { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.6',  requirement: '특권(관리자) 계정 사용을 최소화한다.', objective: '관리자 권한 계정 수가 최소화되어 있고, 일반 업무용으로 사용되지 않는지 확인한다.', weight: 3, sortOrder: 6 },
+  { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.6',  requirement: '특권(관리자) 계정 사용을 최소화한다.', objective: '관리자 권한 계정 수가 최소화되어 있고, 일반 업무용으로 사용되지 않는지 확인한다.', weight: 1, sortOrder: 6 },
   { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.7',  requirement: '비권한 사용자가 보안 기능 및 정보를 실행하지 못하도록 방지한다.', objective: '사용자가 시스템 보안 설정을 임의로 변경하거나 접근하지 못하도록 설정되어 있는지 확인한다.', weight: 1, sortOrder: 7 },
   { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.8',  requirement: '실패한 로그인 시도 횟수를 제한한다.', objective: '일정 횟수 이상 로그인 실패 시 계정이 잠기거나 지연되는 정책이 적용되어 있는지 확인한다.', weight: 1, sortOrder: 8 },
   { level: '2' as const, domainCode: 'AC', domainName: '접근 통제', requirementId: '3.1.9',  requirement: '시스템 접근 시 보안 공지문(배너)을 제공한다.', objective: '시스템 로그인 시 권한 없는 접근에 대한 경고문이 표시되는지 확인한다.', weight: 1, sortOrder: 9 },
@@ -347,18 +348,23 @@ async function seed() {
 
   console.warn(`관리자 계정: ${adminEmail}`)
 
-  // 2. 점검항목 마스터 시드
-  const allItems = [...LEVEL1_ITEMS, ...LEVEL2_ITEMS]
+  // 2. Level 1 점검항목 삽입 (최초 1회)
   await db
     .insert(checklistItems)
-    .values(allItems.map((item) => ({ ...item, createdBy: 'seed' })))
+    .values(LEVEL1_ITEMS.map((item) => ({ ...item, createdBy: 'seed' })))
     .onConflictDoNothing()
+
+  // 3. Level 2 점검항목 — 가중치 정확성 보장을 위해 삭제 후 재삽입
+  await db.delete(checklistItems).where(eq(checklistItems.level, '2'))
+  await db
+    .insert(checklistItems)
+    .values(LEVEL2_ITEMS.map((item) => ({ ...item, createdBy: 'seed' })))
 
   console.warn(
     `점검항목 삽입 완료:\n` +
-    `  Level 1 (FAR 52.204-21): ${LEVEL1_ITEMS.length}개 요구사항 (requirementId 고유)\n` +
-    `  Level 2 (NIST SP 800-171): ${LEVEL2_ITEMS.length}개 요구사항 (requirementId 고유)\n` +
-    `  합계: ${allItems.length}개`,
+    `  Level 1 (FAR 52.204-21): ${LEVEL1_ITEMS.length}개 요구사항\n` +
+    `  Level 2 (NIST SP 800-171): ${LEVEL2_ITEMS.length}개 요구사항 (가중치 합계: 218점)\n` +
+    `  합계: ${LEVEL1_ITEMS.length + LEVEL2_ITEMS.length}개`,
   )
   console.warn('=== DB 시드 완료 ===')
 }
