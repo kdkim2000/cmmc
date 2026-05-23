@@ -15,6 +15,8 @@ const poamSchema = z.object({
   status: z.enum(['planned', 'in_progress', 'completed']),
 })
 
+const updatePoamSchema = poamSchema.omit({ itemId: true })
+
 const revalidateAll = () => {
   revalidatePath('/poam')
   revalidatePath('/gap-analysis')
@@ -77,6 +79,9 @@ export async function updatePoam(
 ) {
   const session = await auth()
   if (!session) return { success: false, error: '인증이 필요합니다' }
+
+  const parsed = updatePoamSchema.safeParse(data)
+  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
   try {
     await db
