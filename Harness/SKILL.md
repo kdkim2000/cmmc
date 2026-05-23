@@ -10,13 +10,14 @@
 | **Phase 1-3** | `/ai-dlc-data-design` | 데이터 모델 설계 | `설계산출물/데이터설계서_CMMC_인증관리시스템_20260523.md` | ✅ 완료 |
 | **Phase 1-4** | `/ai-dlc-api-design` | API 명세 설계 | `설계산출물/API설계서_CMMC_인증관리시스템_20260523.yaml` | ✅ 완료 |
 | **Phase 1-5** | `/ai-dlc-screen-spec` | 화면 상세 정의 | `설계산출물/화면정의서_CMMC_인증관리시스템_20260523.md` | ✅ 완료 |
-| **Phase 2-1** | `/ai-dlc-nxt-project-setup` | Next.js 15 프로젝트 초기화 | `package.json`, `src/` 구조 | ⏳ 대기 |
-| **Phase 2-2** | `/ai-dlc-nxt-impl-plan` | 구현 전략 수립 | `설계산출물/Next.js구현계획_YYYYMMDD.md` | ⏳ 대기 |
-| **Phase 2-3** | `/ai-dlc-nxt-page-gen` | 페이지 컴포넌트 생성 | `src/app/**/*.tsx` | ⏳ 대기 |
-| **Phase 2-4** | `/ai-dlc-nxt-route-handler-gen` | API Route Handler 생성 | `src/app/api/**/*.ts` | ⏳ 대기 |
-| **Phase 2-5** | `/ai-dlc-nxt-server-action-gen` | Server Action 생성 | `src/actions/**/*.ts` | ⏳ 대기 |
-| **Phase 3-1** | `/ai-dlc-nxt-code-review` | 코드 품질 리뷰 | 리뷰 리포트 | ⏳ 대기 |
-| **Phase 3-2** | `/ai-dlc-nxt-deploy-guide` | Vercel 배포 가이드 | 배포 설정 완료 | ⏳ 대기 |
+| **Phase 2-1** | `/ai-dlc-nxt-project-setup` | Next.js 15 프로젝트 초기화 | `package.json`, `src/` 구조 | ✅ 완료 |
+| **Phase 2-2** | `/ai-dlc-nxt-impl-plan` | 구현 전략 수립 | `설계산출물/Next.js구현계획_20260523.md` | ✅ 완료 |
+| **Phase 2-3** | `/ai-dlc-nxt-page-gen` | 페이지 컴포넌트 생성 | `src/app/(main)/**/*.tsx` (12개 화면) | ✅ 완료 |
+| **Phase 2-4** | `/ai-dlc-nxt-route-handler-gen` | API Route Handler 생성 | `src/app/api/**/*.ts` (3개) | ✅ 완료 |
+| **Phase 2-5** | `/ai-dlc-nxt-server-action-gen` | Server Action 생성 | `src/actions/*.ts` (4개 도메인) | ✅ 완료 |
+| **Phase 3-1** | `/ai-dlc-nxt-code-review` | 코드 품질 리뷰 | `updatePoam` Zod 검증 추가, Level 2 objective 표시 수정 | ✅ 완료 |
+| **Phase 3-2** | `/ai-dlc-nxt-deploy-guide` | Vercel 배포 가이드 | `설계산출물/Vercel배포가이드_CMMC_인증관리시스템_20260524.md` | ✅ 완료 |
+| **보완 추가** | `/ai-dlc-nxt-test-gen` | 테스트 생성 (누락 보완) | `src/lib/utils.test.ts`, `src/lib/cmmc.test.ts` (20개 테스트) | ✅ 완료 |
 
 > **범례**: ✅ 완료 · 🔄 진행중 · ⏳ 대기 · ❌ 차단됨
 
