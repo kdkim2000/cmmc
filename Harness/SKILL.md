@@ -10,7 +10,7 @@
 | **Phase 1-3** | `/ai-dlc-data-design` | 데이터 모델 설계 | `설계산출물/데이터설계서_CMMC_인증관리시스템_20260523.md` | ✅ 완료 |
 | **Phase 1-4** | `/ai-dlc-api-design` | API 명세 설계 | `설계산출물/API설계서_CMMC_인증관리시스템_20260523.yaml` | ✅ 완료 |
 | **Phase 1-5** | `/ai-dlc-screen-spec` | 화면 상세 정의 | `설계산출물/화면정의서_CMMC_인증관리시스템_20260523.md` | ✅ 완료 |
-| **Phase 2-1** | `/ai-dlc-nxt-project-setup` | Next.js 15 프로젝트 초기화 | `package.json`, `src/` 구조 | ⏳ 대기 |
+| **Phase 2-1** | `/ai-dlc-nxt-project-setup` | Next.js 15 프로젝트 초기화 | `package.json`, `src/` 구조 | ✅ 완료 |
 | **Phase 2-2** | `/ai-dlc-nxt-impl-plan` | 구현 전략 수립 | `설계산출물/Next.js구현계획_YYYYMMDD.md` | ⏳ 대기 |
 | **Phase 2-3** | `/ai-dlc-nxt-page-gen` | 페이지 컴포넌트 생성 | `src/app/**/*.tsx` | ⏳ 대기 |
 | **Phase 2-4** | `/ai-dlc-nxt-route-handler-gen` | API Route Handler 생성 | `src/app/api/**/*.ts` | ⏳ 대기 |
