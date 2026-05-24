@@ -1,5 +1,7 @@
 # AI-DLC 변경 관리 가이드
 
+> **v1.1** — 변경 관리 전용 스킬 4개 통합: `ai-dlc-change-register` · `ai-dlc-doc-impact` · `ai-dlc-consistency-check` · `ai-dlc-change-complete`
+
 > AI-DLC(AI-Driven Development Lifecycle) 방법론으로 개발 완료된 프로젝트에서  
 > **요구사항 변경·추가가 발생했을 때** 산출물 추적성을 유지하며 변경을 관리하는 전 과정 가이드.
 
@@ -119,20 +121,23 @@ AI-DLC 설계 스킬은 **Create(신규) → Revise(변경) → Validate(검증)
 
 ```mermaid
 flowchart TD
-  START([변경 발생]) --> REG[CR-NNN 등록\ndocs/change-log.md]
-  REG --> IA[영향도 분석\n/ai-dlc-impact-analysis\n/ai-dlc-code-traceability]
-  IA --> SCOPE{영향 범위 결정}
+  START([변경 발생]) --> REG["CR-NNN 등록\n/ai-dlc-change-register"]
+  REG --> IA["코드 레벨 영향도\n/ai-dlc-impact-analysis\n/ai-dlc-code-traceability"]
+  IA --> DIA["문서 레벨 영향도\n/ai-dlc-doc-impact"]
+  DIA --> SCOPE{영향 범위 결정}
 
   SCOPE -->|설계 산출물\n변경 필요| REVISE[설계 산출물 Revise\n해당 스킬만 선택 실행]
   REVISE --> VALIDATE[검증\n/ai-dlc-xxx-validate]
-  VALIDATE -->|승인| CODE[코드 반영\n/ai-dlc-nxt-code-revise]
+  VALIDATE -->|승인| CC["산출물 간 일관성 검증\n/ai-dlc-consistency-check"]
   VALIDATE -->|재검토 필요| REVISE
+  CC -->|일관성 확인| CODE["코드 반영\n/ai-dlc-nxt-code-revise"]
+  CC -->|이슈 발견| REVISE
 
   SCOPE -->|코드만\n변경 필요| CODE
 
-  CODE --> REVIEW[코드 리뷰\n/ai-dlc-nxt-code-review]
-  REVIEW --> LOG[변경 이력 갱신\ndocs/change-log.md 완료 처리]
-  LOG --> GIT[git commit\nfix/feat CR-NNN 메시지]
+  CODE --> REVIEW["코드 리뷰\n/ai-dlc-nxt-code-review"]
+  REVIEW --> DONE2["CR 완료 처리\n/ai-dlc-change-complete"]
+  DONE2 --> GIT[git commit\nfix/feat CR-NNN 메시지]
   GIT --> DONE([완료])
 ```
 
@@ -153,13 +158,23 @@ flowchart TD
 
 ### Step 1: 변경 요청 접수
 
-`docs/change-log.md` CR 목록 테이블에 신규 행 추가.
+변경 내용을 자연어로 설명하면 CR-NNN 자동 채번 후 `docs/change-log.md`에 등록된다.
+
+```
+/ai-dlc-change-register 감사 로그 조회 기능 추가 — CMMC 심사관이 시스템 접근 이력 조회 화면을 요구함
+```
+
+자동 처리 내용:
+- 마지막 CR 번호 파악 후 CR-004 채번
+- 키워드 분석 → CR-NEW 자동 분류
+- 요구사항정의서 탐색 → 관련 FR-NNN 자동 연결 시도
+- `docs/change-log.md` CR 목록 테이블에 신규 행 추가
+- CR 상세 섹션 템플릿 자동 생성:
 
 ```markdown
 | CR-004 | CR-NEW | 감사 로그 조회 기능 추가 | FR-014 | - | ⏳ 대기 | 2026-06-01 | - |
 ```
 
-CR 상세 섹션에 아래 템플릿 작성:
 ```markdown
 ### CR-004 — 감사 로그 조회 기능 추가
 
@@ -170,7 +185,9 @@ CR 상세 섹션에 아래 템플릿 작성:
 CMMC 심사 준비 중 감사관이 시스템 접근 이력을 요구함.
 로그인/로그아웃, 평가 결과 변경 이력을 조회할 수 있는 화면이 필요.
 
-**관련 FR**: FR-014 (신규)
+**관련 FR**: FR-014
+
+**실행 스킬 체인**: (영향도 분석 후 확정 — /ai-dlc-doc-impact 실행 권장)
 ```
 
 ---
@@ -202,19 +219,29 @@ CMMC 심사 준비 중 감사관이 시스템 접근 이력을 요구함.
 
 **문서 레벨 영향도** (어떤 설계 산출물이 영향받는지):
 
-impact-analysis 결과를 바탕으로 수동 판단:
+impact-analysis 결과를 `/ai-dlc-doc-impact`에 전달하면 자동 분석:
 
 ```
-변경된 코드 파일 → 관련 설계 ID 역추적
+/ai-dlc-doc-impact src/db/schema.ts src/actions/evaluations.ts src/app/(main)/assessment/level2/page.tsx
+```
 
-src/db/schema.ts (checklistItems 테이블)
-  → 데이터설계서의 checklistItems 엔터티 → 데이터설계서 revise 필요
+출력 예시:
+```
+### 수정 필요 산출물
+| 산출물 | 파일 | 역추적 근거 | 이유 | 권장 스킬 |
+|:---|:---|:---|:---|:---|
+| 데이터설계서 | 데이터설계서_CMMC_20260523.md | schema.ts:checklistItems | weight 컬럼 변경 | /ai-dlc-data-revise |
+| 화면정의서 | 화면정의서_CMMC_20260523.md | SCR-004 (assessment/level2) | 데이터 표시 항목 변경 | /ai-dlc-screen-revise |
 
-src/app/(main)/assessment/level2/page.tsx (SCR-004)
-  → 화면정의서 SCR-004 → 화면정의서 revise 필요
+### 수정 불필요 산출물
+- API설계서: 엔드포인트 스펙 변경 없음
 
-GET /api/checklist (operationId: getChecklist)
-  → API설계서 → API설계서 revise 필요? (스펙 변경인 경우만)
+### 권장 실행 순서
+Step 1: /ai-dlc-data-revise
+Step 2: /ai-dlc-data-validate
+Step 3: /ai-dlc-screen-revise
+Step 4: /ai-dlc-screen-validate
+Step 5: 코드 반영
 ```
 
 ---
@@ -263,6 +290,29 @@ revise한 산출물을 validate로 검증한다.
 
 ---
 
+### Step 4-1: 산출물 간 일관성 검증
+
+여러 산출물을 revise한 경우, 코드 반영 전에 산출물 간 일관성을 최종 확인한다.
+
+```
+/ai-dlc-consistency-check @설계산출물/
+```
+
+또는 CR 범위만 집중 검증:
+```
+/ai-dlc-consistency-check @설계산출물/ CR-004
+```
+
+**판정별 처리**:
+
+| 판정 | 조건 | 다음 행동 |
+|:---|:---|:---|
+| **일관성 확인** | 高심각도 0개, CI-NNN 3개 이하 | Step 5 코드 반영으로 진행 |
+| **부분 불일치 (조건부 승인)** | 高심각도 0개, CI-NNN 10개 이하 | 中·低 이슈 확인 후 진행 가능 |
+| **재검토 필요** | 高심각도 1개 이상 또는 CI-NNN 11개 이상 | 해당 산출물 revise 후 재검증 |
+
+---
+
 ### Step 5: 코드 반영
 
 설계 산출물 변경 내용을 코드에 반영한다.
@@ -300,11 +350,24 @@ npm run db:push
 /ai-dlc-nxt-code-review
 ```
 
-리뷰 완료 후:
+리뷰 완료 후 CR을 자동으로 완료 처리한다:
 
-1. `docs/change-log.md` CR 목록 상태 → `✅ 완료` 업데이트
-2. CR 상세 섹션에 완료 내용 기록
-3. git commit (메시지에 CR-NNN 포함):
+```
+/ai-dlc-change-complete CR-004
+```
+
+또는 변경 파일과 커밋 정보를 함께 제공:
+```
+/ai-dlc-change-complete CR-004 변경파일: src/app/(main)/audit-log/page.tsx, src/app/api/audit-log/route.ts 커밋: abc1234
+```
+
+자동 처리 내용:
+- `docs/change-log.md` CR-004 상태 → `✅ 완료`, 완료일 자동 기록
+- CR 상세 섹션에 실행 스킬·변경 파일·git 커밋 기록
+- `Harness/SKILL.md` 변경 이력 섹션에 행 추가
+- 완료 요약 보고서 출력
+
+마지막으로 git commit:
 
 ```bash
 git add .
@@ -714,14 +777,34 @@ git commit -m "fix(CR-001): Level 2 가중치 수정 (SPRS 최저점 -108)"
 
 변경 완료 전 아래 항목을 확인한다:
 
-- [ ] `docs/change-log.md`에 CR-NNN 등록 및 완료 처리
+- [ ] `/ai-dlc-change-register`로 CR-NNN 등록
+- [ ] `/ai-dlc-doc-impact`로 문서 레벨 영향도 확인
 - [ ] 영향받은 설계 산출물 버전 증가 (파일명 날짜 갱신)
 - [ ] validate 통과 확인 (승인 또는 조건부 승인)
+- [ ] 여러 산출물 revise 시 `/ai-dlc-consistency-check` 통과
 - [ ] 코드 변경 파일이 impact-analysis 결과와 일치
 - [ ] 테스트 통과 (`npm run test`)
 - [ ] 빌드 성공 (`npm run build`)
 - [ ] git commit 메시지에 CR-NNN 포함
-- [ ] `Harness/SKILL.md` 변경 이력 섹션 업데이트
+- [ ] `/ai-dlc-change-complete CR-NNN`으로 완료 처리
+
+### 변경 관리 전용 스킬
+
+```bash
+# CR 등록 (자연어 → CR-NNN 자동 채번 + change-log.md 등록)
+/ai-dlc-change-register [변경 내용 자연어 설명]
+
+# 문서 레벨 영향도 (코드 파일 → 수정 필요 설계 산출물 역추적)
+/ai-dlc-doc-impact [변경된 파일 경로 목록]
+/ai-dlc-doc-impact [ai-dlc-impact-analysis 결과 텍스트]
+
+# 산출물 간 일관성 검증 (UC↔API↔화면정의서↔데이터설계서 교차 검증)
+/ai-dlc-consistency-check @설계산출물/
+/ai-dlc-consistency-check @설계산출물/ CR-NNN   # CR 범위만 집중 검증
+
+# CR 완료 처리 (change-log.md 완료 + SKILL.md 이력 + 완료 요약)
+/ai-dlc-change-complete CR-NNN
+```
 
 ### 분석 스킬 명령어 템플릿
 
@@ -781,3 +864,12 @@ git commit -m "fix(CR-001): Level 2 가중치 수정 (SPRS 최저점 -108)"
 - `docs/change-log.md` — CR-NNN 기반 변경 이력 추적 테이블
 - `Harness/SKILL.md` — Phase별 진행 상태 및 변경 이력
 - `설계산출물/` — 현행 설계 산출물 (날짜가 가장 최신인 파일이 현행 버전)
+
+---
+
+## 문서 버전 이력
+
+| 버전 | 일자 | 변경 내용 |
+|:---|:---|:---|
+| v1.0 | 2026-05-24 | 최초 작성 — CR 채번, 6단계 절차, 7종 유형별 스킬 체인 |
+| v1.1 | 2026-05-24 | 변경 관리 전용 스킬 4개 통합: `ai-dlc-change-register`(Step 1 자동화), `ai-dlc-doc-impact`(Step 2 문서 영향도 자동화), `ai-dlc-consistency-check`(Step 4-1 신설), `ai-dlc-change-complete`(Step 6 완료 처리 자동화); Mermaid 흐름도 업데이트; 빠른 참조 카드에 변경 관리 전용 스킬 섹션 추가 |
